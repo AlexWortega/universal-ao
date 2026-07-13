@@ -1,0 +1,27 @@
+{
+  "tags": [
+    "bloom-560m",
+    "gemma2",
+    "gpt-neo-1p3b",
+    "gpt2-medium",
+    "phi-1p5",
+    "pythia-410m",
+    "qwen2p5-0p5b",
+    "qwen2p5-7b",
+    "qwen3-1p7b",
+    "qwen3-4b",
+    "llama3-8b",
+    "llama3p2-1b",
+    "qvikhr-1p7b",
+    "qwen2p5-1p5b",
+    "smollm2-1p7b"
+  ],
+  "held_out": [
+    "llama3-8b",
+    "llama3p2-1b",
+    "qvikhr-1p7b",
+    "qwen2p5-1p5b",
+    "smollm2-1p7b"
+  ],
+  "n_examples": 147
+}

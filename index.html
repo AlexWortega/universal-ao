@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Universal Activation Oracle — v24</title>
+<meta name="description" content="One trained trunk reads the internal activation of any LLM's response and judges, calibrated, whether it exhibits a behaviour — across architectures it has never seen, zero-shot on concepts it never trained on.">
+<style>
+  :root {
+    --bg: #0b0c10;
+    --panel: #14161c;
+    --panel-2: #1b1e26;
+    --border: #262a35;
+    --text: #e8e9ec;
+    --text-dim: #9aa0ac;
+    --accent: #7c5cff;
+    --accent-2: #35d0ba;
+    --held: #ffb454;
+    --radius: 14px;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f6f6f8;
+      --panel: #ffffff;
+      --panel-2: #f0f0f4;
+      --border: #e2e2e8;
+      --text: #16171b;
+      --text-dim: #5b5f6b;
+      --accent: #6a3dff;
+      --accent-2: #0f9d8c;
+      --held: #b8650a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0b0c10; --panel: #14161c; --panel-2: #1b1e26; --border: #262a35;
+    --text: #e8e9ec; --text-dim: #9aa0ac; --accent: #7c5cff; --accent-2: #35d0ba; --held: #ffb454;
+  }
+  :root[data-theme="light"] {
+    --bg: #f6f6f8; --panel: #ffffff; --panel-2: #f0f0f4; --border: #e2e2e8;
+    --text: #16171b; --text-dim: #5b5f6b; --accent: #6a3dff; --accent-2: #0f9d8c; --held: #b8650a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+  header.hero {
+    padding: 64px 0 40px;
+    border-bottom: 1px solid var(--border);
+  }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+    color: var(--accent-2);
+    background: color-mix(in srgb, var(--accent-2) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent-2) 30%, transparent);
+    padding: 4px 10px; border-radius: 999px;
+  }
+  h1 { font-size: clamp(28px, 4.5vw, 44px); margin: 18px 0 10px; letter-spacing: -0.01em; }
+  .lede { font-size: 17px; color: var(--text-dim); max-width: 720px; }
+  .lede b { color: var(--text); font-weight: 600; }
+  .badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+  .badge {
+    font-size: 12.5px; padding: 5px 10px; border-radius: 8px;
+    background: var(--panel-2); border: 1px solid var(--border); color: var(--text-dim);
+  }
+  .links { margin-top: 22px; display: flex; gap: 14px; flex-wrap: wrap; }
+  .links a {
+    color: var(--text); text-decoration: none; font-size: 14px; font-weight: 500;
+    padding: 8px 14px; border-radius: 9px; border: 1px solid var(--border); background: var(--panel);
+    transition: border-color .15s, transform .15s;
+  }
+  .links a:hover { border-color: var(--accent); transform: translateY(-1px); }
+
+  section { padding: 46px 0; border-bottom: 1px solid var(--border); }
+  section:last-of-type { border-bottom: none; }
+  h2 { font-size: 22px; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .section-sub { color: var(--text-dim); font-size: 14.5px; margin: 0 0 22px; max-width: 680px; }
+
+  .demo-frame-wrap {
+    border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border);
+    background: var(--panel); box-shadow: 0 20px 60px -30px rgba(0,0,0,.5);
+  }
+  .demo-frame-wrap iframe { width: 100%; height: 82vh; min-height: 700px; border: 0; display: block; }
+  .demo-status {
+    display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-dim);
+    padding: 10px 14px; border-bottom: 1px solid var(--border);
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #555; flex: none; }
+  .dot.up { background: var(--accent-2); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-2) 25%, transparent); }
+  .dot.down { background: #ff5c5c; box-shadow: 0 0 0 3px rgba(255,92,92,.25); }
+  .demo-note {
+    font-size: 13px; color: var(--text-dim); margin-top: 12px;
+  }
+  .demo-note a { color: var(--accent); }
+
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+  .chip {
+    font-size: 13px; padding: 6px 12px; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--border); background: var(--panel); color: var(--text-dim);
+    user-select: none; transition: all .15s;
+  }
+  .chip.active { color: #fff; background: var(--accent); border-color: var(--accent); }
+
+  .grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px;
+  }
+  .card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px; cursor: pointer; transition: border-color .15s, transform .15s;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .cat-tag {
+    font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px;
+    background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent);
+    white-space: nowrap;
+  }
+  .role-tag { font-size: 10.5px; color: var(--held); font-weight: 600; }
+  .card-user { font-size: 13.5px; color: var(--text-dim); }
+  .card-assistant {
+    font-size: 13px; color: var(--text);
+    display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .grid-status { font-size: 13px; color: var(--text-dim); margin-bottom: 14px; }
+
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,.6); display: none;
+    align-items: center; justify-content: center; padding: 24px; z-index: 50;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    max-width: 640px; width: 100%; max-height: 80vh; overflow-y: auto; padding: 24px;
+  }
+  .modal h3 { margin: 0 0 4px; font-size: 16px; }
+  .modal .meta { font-size: 12px; color: var(--text-dim); margin-bottom: 16px; }
+  .modal .block { margin-bottom: 14px; }
+  .modal .block .label { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-dim); margin-bottom: 4px; }
+  .modal .block .text { font-size: 14px; white-space: pre-wrap; }
+  .modal-close {
+    float: right; background: none; border: none; color: var(--text-dim); font-size: 20px;
+    cursor: pointer; line-height: 1;
+  }
+
+  footer { padding: 32px 0 60px; color: var(--text-dim); font-size: 13px; }
+  footer a { color: var(--text-dim); }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="hero">
+    <span class="eyebrow">v24 · dirfix</span>
+    <h1>Universal Activation Oracle</h1>
+    <p class="lede">
+      One trained <b>Qwen3-1.7B + LoRA</b> trunk reads the internal activation of <b>any</b> LLM's
+      response — via a per-model linear adapter into a shared 2048-d space — and answers a calibrated
+      <i>"does this exhibit behaviour X? Yes/No"</i>, across architectures it has never seen,
+      zero-shot on concepts it never trained on.
+    </p>
+    <div class="badges">
+      <span class="badge">15 reader architectures</span>
+      <span class="badge">5 held-out (never trained)</span>
+      <span class="badge">122 example transcripts</span>
+      <span class="badge">closed-form: new arch = a linear fit, not a retrain</span>
+    </div>
+    <div class="links">
+      <a href="https://github.com/AlexWortega/qwen3-1p7b-nla" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://huggingface.co/AlexWortega/universal-nla-v24-dirfix" target="_blank" rel="noopener">Checkpoint (HF)</a>
+      <a href="https://huggingface.co/spaces/AlexWortega/bias-activation-oracle" target="_blank" rel="noopener">HF Space (mirror)</a>
+    </div>
+  </header>
+
+  <section id="live">
+    <h2>Try it live</h2>
+    <p class="section-sub">
+      Full interactive app — example gallery with real-time scoring, plus your own transcript read
+      live through a target model — served straight off a research GPU box. It's a personal machine,
+      not production infra, so it can be slow to wake up or briefly offline.
+    </p>
+    <div class="demo-frame-wrap">
+      <div class="demo-status"><span class="dot" id="statusDot"></span><span id="statusText">checking demo status…</span></div>
+      <iframe id="demoFrame" title="Universal Activation Oracle — live demo" loading="lazy"
+        allow="clipboard-write"></iframe>
+    </div>
+    <p class="demo-note">
+      Not loading? <a id="openDirect" href="#" target="_blank" rel="noopener">open the demo directly in a new tab</a>.
+    </p>
+  </section>
+
+  <section id="gallery">
+    <h2>Example gallery</h2>
+    <p class="section-sub">
+      122 real transcripts across bias / direction-pair / deception / incorrect-reasoning, each shipped
+      (in the live demo) with precomputed activations from 15 architectures — 5 of them held out entirely
+      from AV training. Browse below, then pick a matching category in the live demo above to scan one for real.
+    </p>
+    <div class="filters" id="filters"></div>
+    <p class="grid-status" id="gridStatus"></p>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <footer>
+    Built on the Anthropic NLA interpretability line, extended to a single universal AV/AR pair across
+    a heterogeneous model pool. Source: <a href="https://github.com/AlexWortega/qwen3-1p7b-nla" target="_blank" rel="noopener">AlexWortega/qwen3-1p7b-nla</a>.
+  </footer>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+const DEMO_URL = "https://installation-proven-das-targets.trycloudflare.com";
+document.getElementById("demoFrame").src = DEMO_URL;
+document.getElementById("openDirect").href = DEMO_URL;
+
+// best-effort liveness ping (no-cors, so we only learn "it responded" not status code)
+(function checkStatus() {
+  const dot = document.getElementById("statusDot");
+  const txt = document.getElementById("statusText");
+  const img = new Image();
+  const timer = setTimeout(() => {
+    dot.className = "dot down";
+    txt.textContent = "demo may be offline right now — the GPU box hosting it isn't always on";
+  }, 6000);
+  img.onload = img.onerror = () => {
+    clearTimeout(timer);
+    dot.className = "dot up";
+    txt.textContent = "demo reachable";
+  };
+  img.src = DEMO_URL + "/favicon.ico?_=" + Date.now();
+})();
+
+let EXAMPLES = [];
+let META = {};
+let activeCats = new Set();
+
+function excerpt(s, n) {
+  s = (s || "").replace(/\s+/g, " ").trim();
+  return s.length > n ? s.slice(0, n) + "…" : s;
+}
+
+function render() {
+  const grid = document.getElementById("grid");
+  const filtered = EXAMPLES.filter(e => activeCats.size === 0 || activeCats.has(e.category));
+  document.getElementById("gridStatus").textContent =
+    `${filtered.length} / ${EXAMPLES.length} examples`;
+  grid.innerHTML = "";
+  filtered.forEach(e => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="card-top">
+        <span class="cat-tag">${e.category_label}</span>
+        ${e.pair_role ? `<span class="role-tag">${e.pair_role}</span>` : ""}
+      </div>
+      <div class="card-user">${excerpt(e.user, 90)}</div>
+      <div class="card-assistant">${excerpt(e.assistant, 220)}</div>
+    `;
+    card.addEventListener("click", () => openModal(e));
+    grid.appendChild(card);
+  });
+}
+
+function openModal(e) {
+  const modal = document.getElementById("modal");
+  modal.innerHTML = `
+    <button class="modal-close" id="modalClose">&times;</button>
+    <h3>${e.category_label}</h3>
+    <div class="meta">${e.id}${e.pair_role ? " · " + e.pair_role : ""}</div>
+    <div class="block"><div class="label">User</div><div class="text">${e.user}</div></div>
+    <div class="block"><div class="label">Assistant</div><div class="text">${e.assistant}</div></div>
+  `;
+  document.getElementById("modalBackdrop").classList.add("open");
+  document.getElementById("modalClose").onclick = closeModal;
+}
+function closeModal() { document.getElementById("modalBackdrop").classList.remove("open"); }
+document.getElementById("modalBackdrop").addEventListener("click", (ev) => {
+  if (ev.target.id === "modalBackdrop") closeModal();
+});
+
+function buildFilters() {
+  const cats = {};
+  EXAMPLES.forEach(e => { cats[e.category] = e.category_label; });
+  const wrap = document.getElementById("filters");
+  Object.entries(cats).forEach(([key, label]) => {
+    const chip = document.createElement("span");
+    chip.className = "chip";
+    chip.textContent = label;
+    chip.addEventListener("click", () => {
+      if (activeCats.has(key)) { activeCats.delete(key); chip.classList.remove("active"); }
+      else { activeCats.add(key); chip.classList.add("active"); }
+      render();
+    });
+    wrap.appendChild(chip);
+  });
+}
+
+Promise.all([
+  fetch("examples.json").then(r => r.json()),
+  fetch("gallery_meta.json").then(r => r.json()),
+]).then(([examples, meta]) => {
+  EXAMPLES = examples;
+  META = meta;
+  buildFilters();
+  render();
+}).catch(err => {
+  document.getElementById("gridStatus").textContent = "couldn't load example data: " + err;
+});
+</script>
+
+</body>
+</html>
