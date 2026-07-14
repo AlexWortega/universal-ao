@@ -178,15 +178,17 @@
   </header>
 
   <section id="live">
-    <h2>Try it live</h2>
+    <h2>Full Explorer</h2>
     <p class="section-sub">
-      Full interactive app — example gallery with real-time scoring, plus your own transcript read
-      live through a target model — served straight off a research GPU box. It's a personal machine,
-      not production infra, so it can be slow to wake up or briefly offline.
+      The full interactive tool: pick any of 20 reader architectures, run a forward pass or a live
+      generation on your own text, then click any token (or the whole-passage mean-pool) to have the
+      AV verbalize what that activation encodes — plus a calibrated Yes/No bias/deception scan. You can
+      also register a brand-new architecture on the fly (closed-form fit, no retrain). Served straight
+      off a research GPU box, so it can be slow to wake up or briefly offline.
     </p>
     <div class="demo-frame-wrap">
       <div class="demo-status"><span class="dot" id="statusDot"></span><span id="statusText">checking demo status…</span></div>
-      <iframe id="demoFrame" title="Universal Activation Oracle — live demo" loading="lazy"
+      <iframe id="demoFrame" title="Universal NLA Explorer — live demo" loading="lazy"
         allow="clipboard-write"></iframe>
     </div>
     <p class="demo-note">
@@ -197,9 +199,9 @@
   <section id="gallery">
     <h2>Example gallery</h2>
     <p class="section-sub">
-      122 real transcripts across bias / direction-pair / deception / incorrect-reasoning, each shipped
-      (in the live demo) with precomputed activations from 15 architectures — 5 of them held out entirely
-      from AV training. Browse below, then pick a matching category in the live demo above to scan one for real.
+      122 real transcripts across bias / direction-pair / deception / incorrect-reasoning categories,
+      pulled from the training/eval data. Browse below, then paste a similar prompt into the Full
+      Explorer above to read it live through any reader architecture.
     </p>
     <div class="filters" id="filters"></div>
     <p class="grid-status" id="gridStatus"></p>
@@ -217,7 +219,7 @@
 </div>
 
 <script>
-const DEMO_URL = "https://installation-proven-das-targets.trycloudflare.com";
+const DEMO_URL = "https://uniform-efficiently-applications-reduce.trycloudflare.com";
 document.getElementById("demoFrame").src = DEMO_URL;
 document.getElementById("openDirect").href = DEMO_URL;
 
