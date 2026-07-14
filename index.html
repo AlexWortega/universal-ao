@@ -171,6 +171,7 @@
       <span class="badge">closed-form: new arch = a linear fit, not a retrain</span>
     </div>
     <div class="links">
+      <a href="#reproductions">Reproductions</a>
       <a href="https://github.com/AlexWortega/qwen3-1p7b-nla" target="_blank" rel="noopener">GitHub</a>
       <a href="https://huggingface.co/AlexWortega/universal-nla-v24-dirfix" target="_blank" rel="noopener">Checkpoint (HF)</a>
       <a href="https://huggingface.co/spaces/AlexWortega/bias-activation-oracle" target="_blank" rel="noopener">HF Space (mirror)</a>
@@ -195,6 +196,33 @@
     <p class="demo-note">
       Not loading? <a id="openDirect" href="#" target="_blank" rel="noopener">open the demo directly in a new tab</a>.
     </p>
+  </section>
+
+  <section id="reproductions">
+    <h2>Reproductions</h2>
+    <p class="section-sub">
+      Four small reproductions from the activation-reading literature, run cross-architecture through
+      this trunk via <code>/api/templates/*</code> on the Full Explorer above. Two hold up under
+      verification, two don't — full data, tables, and honest negatives in the
+      <a href="https://claude.ai/code/artifact/0baab3d0-dc9a-472e-a259-683f76fa047a" target="_blank" rel="noopener">full report</a>.
+    </p>
+    <div class="card" style="cursor:default;max-width:640px;margin-bottom:16px;">
+      <div class="card-top">
+        <span class="cat-tag">Causal steering — confirmed</span>
+        <span class="role-tag">reproducible, coef 0.3</span>
+      </div>
+      <div class="card-user">Edit "plate tectonics" → "ocean currents" in the AV's own description of an activation, reconstruct through AR, inject the norm-matched delta into the target's residual stream during generation:</div>
+      <div class="card-assistant" style="-webkit-line-clamp:unset;">
+        <b>Baseline:</b> "…plate tectonics. This theory states that the Earth's surface is divided into plates…"<br>
+        <b>Steered:</b> "…the ocean currents. The movement of the Earth's crust is explained by the theory of the ocean currents…"
+      </div>
+    </div>
+    <div class="badges" style="margin-top:0;margin-bottom:8px;">
+      <span class="badge">01 answer-before-computation — negative</span>
+      <span class="badge">02 causal steering — confirmed</span>
+      <span class="badge">03 eval-awareness — weak, mostly confounded</span>
+      <span class="badge">04 confabulation recurrence — negative, specific finding</span>
+    </div>
   </section>
 
   <section id="gallery">
